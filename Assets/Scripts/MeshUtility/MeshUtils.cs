@@ -5,7 +5,7 @@ using VertexData = System.Tuple<UnityEngine.Vector3, UnityEngine.Vector3, UnityE
 
 public static class MeshUtils
 {
-    public enum EBlockType { Grass, Dirt, Stone, Sand, Water, Air }
+    public enum EBlockType { Grass, Dirt, Stone, Sand, Water, Diamonds, Gold, Bedrock, Air }
 
     public enum EBlockSide
     {
@@ -24,6 +24,9 @@ public static class MeshUtils
         {new Vector2(0.0625f * 1, 0.0625f * 15), new Vector2(0.0625f * 1, 0.0625f * 16), new Vector2(0.0625f * 2, 0.0625f * 15), new Vector2(0.0625f * 2, 0.0625f * 16)},       //Stone
         {new Vector2(0.0625f * 2, 0.0625f * 14), new Vector2(0.0625f * 2, 0.0625f * 15), new Vector2(0.0625f * 3, 0.0625f * 14), new Vector2(0.0625f * 3, 0.0625f * 15)},       //Sand
         {new Vector2(0.0625f * 15, 0.0625f * 3), new Vector2(0.0625f * 15, 0.0625f * 4), new Vector2(0.0625f * 16, 0.0625f * 3), new Vector2(0.0625f * 16, 0.0625f * 4)},       //Water
+        {new Vector2(0.0625f * 2, 0.0625f * 12), new Vector2(0.0625f * 2, 0.0625f * 13), new Vector2(0.0625f * 3, 0.0625f * 12), new Vector2(0.0625f * 3, 0.0625f * 13)},       //Diamonds
+        {new Vector2(0.0625f * 0, 0.0625f * 13), new Vector2(0.0625f * 0, 0.0625f * 14), new Vector2(0.0625f * 1, 0.0625f * 13), new Vector2(0.0625f * 1, 0.0625f * 14)},       //Gold
+        {new Vector2(0.0625f * 1, 0.0625f * 14), new Vector2(0.0625f * 1, 0.0625f * 15), new Vector2(0.0625f * 2, 0.0625f * 14), new Vector2(0.0625f * 1, 0.0625f * 15)},       //BedRock
     };
     public static Mesh MergeMeshes(Mesh[] meshes)
     {

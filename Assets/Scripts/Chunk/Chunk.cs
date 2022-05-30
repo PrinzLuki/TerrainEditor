@@ -17,23 +17,12 @@ public class Chunk : MonoBehaviour
     public Block[,,] blocks; //FlatArray = x + width * (y + depth * z) = blocks[x, y, z]
 
     public MeshUtils.EBlockType[] chunkData;
-
-    [Header("Perlin Noise Settings")]
-    [SerializeField] float heightScale = 10f;
-    [SerializeField] float scale = 0.00025f;
-    [SerializeField] float heightOffset = -40f;
-    [SerializeField] int octaves = 10;
-
+    public MeshRenderer meshRenderer;
     public Vector3 chunkLocation;
 
     public int Width { get => width; set => width = value; }
     public int Depth { get => depth; set => depth = value; }
     public int Height { get => height; set => height = value; }
-
-    public float HeightScale { get => heightScale; set => heightScale = value; }
-    public float Scale { get => scale; set => scale = value; }
-    public float HeightOffset { get => heightOffset; set => heightOffset = value; }
-    public int Octaves { get => octaves; set => octaves = value; }
 
     void Start()
     {
@@ -49,6 +38,7 @@ public class Chunk : MonoBehaviour
 
         MeshFilter meshF = this.gameObject.AddComponent<MeshFilter>();
         MeshRenderer meshR = this.gameObject.AddComponent<MeshRenderer>();
+        meshRenderer = meshR;
         meshR.material = mat_Atlas;
 
         blocks = new Block[width, height, depth];
@@ -196,24 +186,45 @@ public class Chunk : MonoBehaviour
             int y = (i / width) % height + (int)chunkLocation.y;
             int z = i / (width * height) + (int)chunkLocation.z;
 
-            int surfaceHeight = (int)MeshUtils.FractalBrownianMotion(x, z, scale, heightScale, octaves, heightOffset);
+            int surfaceHeight = (int)MeshUtils.FractalBrownianMotion(x, z, World.surfaceSettings.scale, World.surfaceSettings.heightScale, World.surfaceSettings.octaves, World.surfaceSettings.heightOffset);
 
+            int stoneHeight = (int)MeshUtils.FractalBrownianMotion(x, z, World.stoneSettings.scale, World.stoneSettings.heightScale, World.stoneSettings.octaves, World.stoneSettings.heightOffset);
+
+            int diamondTopHeight = (int)MeshUtils.FractalBrownianMotion(x, z, World.diamondTopSettings.scale, World.diamondTopSettings.heightScale, World.diamondTopSettings.octaves, World.diamondTopSettings.heightOffset);
+            int diamondBottomHeight = (int)MeshUtils.FractalBrownianMotion(x, z, World.diamondBottomSettings.scale, World.diamondBottomSettings.heightScale, World.diamondBottomSettings.octaves, 
+                                                                           World.diamondBottomSettings.heightOffset);
+
+            int goldTopHeight = (int)MeshUtils.FractalBrownianMotion(x, z, World.goldTopSettings.scale, World.goldTopSettings.heightScale, World.goldTopSettings.octaves, World.goldTopSettings.heightOffset);
+            int goldBottomHeight = (int)MeshUtils.FractalBrownianMotion(x, z, World.goldBottomSettings.scale, World.goldBottomSettings.heightScale, World.goldBottomSettings.octaves, World.goldBottomSettings.heightOffset);
+
+            //Grass
             if (surfaceHeight == y)
             {
                 chunkData[i] = MeshUtils.EBlockType.Grass;
             }
-            else if (y + 4 < surfaceHeight)
+            //Diamond
+            else if(y < diamondTopHeight && y > diamondBottomHeight && UnityEngine.Random.Range(0, 100) < World.diamondTopSettings.probability)
+            {
+                chunkData[i] = MeshUtils.EBlockType.Diamonds;
+            }
+            //Gold
+            else if(y < goldTopHeight && y > goldBottomHeight && UnityEngine.Random.Range(0,100) < World.goldTopSettings.probability)
+            {
+                chunkData[i] = MeshUtils.EBlockType.Gold;
+            }
+            //Stone
+            else if (y < stoneHeight && UnityEngine.Random.Range(0,100) < World.stoneSettings.probability)
             {
                 chunkData[i] = MeshUtils.EBlockType.Stone;
             }
+            //Dirt
             else if (y < surfaceHeight)
             {
                 chunkData[i] = MeshUtils.EBlockType.Dirt;
             }
+            //Air
             else
                 chunkData[i] = MeshUtils.EBlockType.Air;
-
-            state = ChunkState.Build;
         }
     }
 

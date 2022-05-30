@@ -5,16 +5,14 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class PerlinGrapher : MonoBehaviour
 {
-    LineRenderer lineRenderer;
-    [SerializeField] float heightScale = 2f;
-    [SerializeField] float scale = 0.5f;
-    [SerializeField] int octaves = 1;
-    [SerializeField] float heightOffset = -40;
-
-    public float HeightScale { get => heightScale; set => heightScale = value; }
-    public float Scale { get => scale; set => scale = value; }
-    public int Octaves { get => octaves; set => octaves = value; }
-    public float HeightOffset { get => heightOffset; set => heightOffset = value; }
+    public LineRenderer lineRenderer;
+    public float heightScale = 2f;
+    [Range(0.0f, 1.0f)]
+    public float scale = 0.5f;
+    public int octaves = 1;
+    public float heightOffset = 1;
+    [Range(0.0f, 100f)]
+    public float probability = 1;
 
     void Start()
     {
