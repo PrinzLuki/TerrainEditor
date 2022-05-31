@@ -17,6 +17,10 @@ public static class MeshUtils
         Back
     }
 
+    ///DONT TOUCH THIS!!!
+    /// <summary>
+    /// Defines the uvs for the Blocktypes
+    /// </summary>
     public static Vector2[,] blockUvData =
     {
         {new Vector2(0.0625f * 2, 0.0625f * 6), new Vector2(0.0625f * 2, 0.0625f * 7), new Vector2(0.0625f * 3, 0.0625f * 6), new Vector2(0.0625f * 3, 0.0625f * 7)},           //Grass 
@@ -28,6 +32,12 @@ public static class MeshUtils
         {new Vector2(0.0625f * 0, 0.0625f * 13), new Vector2(0.0625f * 0, 0.0625f * 14), new Vector2(0.0625f * 1, 0.0625f * 13), new Vector2(0.0625f * 1, 0.0625f * 14)},       //Gold
         {new Vector2(0.0625f * 1, 0.0625f * 14), new Vector2(0.0625f * 1, 0.0625f * 15), new Vector2(0.0625f * 2, 0.0625f * 14), new Vector2(0.0625f * 1, 0.0625f * 15)},       //BedRock
     };
+
+    /// <summary>
+    /// Merging meshes together
+    /// </summary>
+    /// <param name="meshes"></param>
+    /// <returns></returns>
     public static Mesh MergeMeshes(Mesh[] meshes)
     {
         Mesh mesh = new Mesh();

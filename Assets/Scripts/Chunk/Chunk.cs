@@ -18,19 +18,15 @@ public class Chunk : MonoBehaviour
 
     public MeshUtils.EBlockType[] chunkData;
     public MeshRenderer meshRenderer;
-    public Vector3 chunkLocation;
+    public Vector3 location;
 
     public int Width { get => width; set => width = value; }
     public int Depth { get => depth; set => depth = value; }
     public int Height { get => height; set => height = value; }
 
-    void Start()
-    {
-
-    }
     public void CreateChunk(Vector3 chunkScale, Vector3 position)
     {
-        chunkLocation = position;
+        location = position;
         width = (int)chunkScale.x;
         height = (int)chunkScale.y;
         depth = (int)chunkScale.z;
@@ -61,7 +57,7 @@ public class Chunk : MonoBehaviour
             {
                 for (int x = 0; x < width; x++)
                 {
-                    blocks[x, y, z] = new Block(new Vector3(x, y, z) + chunkLocation, chunkData[x + width * (y + depth * z)], this);
+                    blocks[x, y, z] = new Block(new Vector3(x, y, z) + location, chunkData[x + width * (y + depth * z)], this);
 
                     if (blocks[x, y, z].mesh != null)
                     {
@@ -90,7 +86,7 @@ public class Chunk : MonoBehaviour
         var handle = jobs.Schedule(inputMeshes.Count, 4);
 
         var newMesh = new Mesh();
-        newMesh.name = "Chunk" + chunkLocation.x + "_" + chunkLocation.y + "_" + chunkLocation.z;
+        newMesh.name = "Chunk" + location.x + "_" + location.y + "_" + location.z;
 
         var smDescriptor = new SubMeshDescriptor(0, triStart, MeshTopology.Triangles);
         smDescriptor.firstVertex = 0;
@@ -175,23 +171,31 @@ public class Chunk : MonoBehaviour
         }
     }
 
-    void BuildCunk()
-    {
-        int blockCount = width * height * depth;
-        chunkData = new MeshUtils.EBlockType[blockCount];
+    CalculateBlockTypes calculateBlockTypes;
+    JobHandle jHandle;
 
-        for (int i = 0; i < blockCount; i++)
+    struct CalculateBlockTypes : IJobParallelFor
+    {
+        public NativeArray<MeshUtils.EBlockType> cData;
+        public int width;
+        public int height;
+        public Vector3 location;
+        public Unity.Mathematics.Random random;
+
+        public void Execute(int i)
         {
-            int x = i % width + (int)chunkLocation.x;
-            int y = (i / width) % height + (int)chunkLocation.y;
-            int z = i / (width * height) + (int)chunkLocation.z;
+            int x = i % width + (int)location.x;
+            int y = (i / width) % height + (int)location.y;
+            int z = i / (width * height) + (int)location.z;
+
+            random = new Unity.Mathematics.Random(1);
 
             int surfaceHeight = (int)MeshUtils.FractalBrownianMotion(x, z, World.surfaceSettings.scale, World.surfaceSettings.heightScale, World.surfaceSettings.octaves, World.surfaceSettings.heightOffset);
 
             int stoneHeight = (int)MeshUtils.FractalBrownianMotion(x, z, World.stoneSettings.scale, World.stoneSettings.heightScale, World.stoneSettings.octaves, World.stoneSettings.heightOffset);
 
             int diamondTopHeight = (int)MeshUtils.FractalBrownianMotion(x, z, World.diamondTopSettings.scale, World.diamondTopSettings.heightScale, World.diamondTopSettings.octaves, World.diamondTopSettings.heightOffset);
-            int diamondBottomHeight = (int)MeshUtils.FractalBrownianMotion(x, z, World.diamondBottomSettings.scale, World.diamondBottomSettings.heightScale, World.diamondBottomSettings.octaves, 
+            int diamondBottomHeight = (int)MeshUtils.FractalBrownianMotion(x, z, World.diamondBottomSettings.scale, World.diamondBottomSettings.heightScale, World.diamondBottomSettings.octaves,
                                                                            World.diamondBottomSettings.heightOffset);
 
             int goldTopHeight = (int)MeshUtils.FractalBrownianMotion(x, z, World.goldTopSettings.scale, World.goldTopSettings.heightScale, World.goldTopSettings.octaves, World.goldTopSettings.heightOffset);
@@ -200,32 +204,53 @@ public class Chunk : MonoBehaviour
             //Grass
             if (surfaceHeight == y)
             {
-                chunkData[i] = MeshUtils.EBlockType.Grass;
+                cData[i] = MeshUtils.EBlockType.Grass;
             }
             //Diamond
-            else if(y < diamondTopHeight && y > diamondBottomHeight && UnityEngine.Random.Range(0, 100) < World.diamondTopSettings.probability)
+            else if (y < diamondTopHeight && y > diamondBottomHeight && random.NextFloat(100) < World.diamondTopSettings.probability)
             {
-                chunkData[i] = MeshUtils.EBlockType.Diamonds;
+                cData[i] = MeshUtils.EBlockType.Diamonds;
             }
             //Gold
-            else if(y < goldTopHeight && y > goldBottomHeight && UnityEngine.Random.Range(0,100) < World.goldTopSettings.probability)
+            else if (y < goldTopHeight && y > goldBottomHeight && random.NextFloat(100) < World.goldTopSettings.probability)
             {
-                chunkData[i] = MeshUtils.EBlockType.Gold;
+                cData[i] = MeshUtils.EBlockType.Gold;
             }
             //Stone
-            else if (y < stoneHeight && UnityEngine.Random.Range(0,100) < World.stoneSettings.probability)
+            else if (y < stoneHeight && random.NextFloat(100) < World.stoneSettings.probability)
             {
-                chunkData[i] = MeshUtils.EBlockType.Stone;
+                cData[i] = MeshUtils.EBlockType.Stone;
             }
             //Dirt
             else if (y < surfaceHeight)
             {
-                chunkData[i] = MeshUtils.EBlockType.Dirt;
+                cData[i] = MeshUtils.EBlockType.Dirt;
             }
             //Air
             else
-                chunkData[i] = MeshUtils.EBlockType.Air;
+                cData[i] = MeshUtils.EBlockType.Air;
+
         }
+    }
+
+
+    void BuildCunk()
+    {
+        int blockCount = width * height * depth;
+        chunkData = new MeshUtils.EBlockType[blockCount];
+        NativeArray<MeshUtils.EBlockType> blockTypes = new NativeArray<MeshUtils.EBlockType>(chunkData, Allocator.Persistent);
+        calculateBlockTypes = new CalculateBlockTypes()
+        {
+            cData = blockTypes,
+            width = width,
+            height = height,
+            location = location
+        };
+
+        jHandle = calculateBlockTypes.Schedule(chunkData.Length, 64);
+        jHandle.Complete();
+        calculateBlockTypes.cData.CopyTo(chunkData);
+        blockTypes.Dispose();
     }
 
 }

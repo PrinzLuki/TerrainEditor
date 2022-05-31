@@ -33,6 +33,9 @@ public class PerlinGrapher : MonoBehaviour
     //      return total;
     //}
 
+    /// <summary>
+    /// Is shown in scene view to visualize a perlin Noise
+    /// </summary>
     void Graph()
     {
         lineRenderer = GetComponent<LineRenderer>();

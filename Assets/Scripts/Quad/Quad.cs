@@ -4,6 +4,12 @@ public class Quad
 {
     public Mesh mesh;
 
+    /// <summary>
+    /// Creating a quad
+    /// </summary>
+    /// <param name="offset">Used for the verts position</param>
+    /// <param name="blockside">Which side is building</param>
+    /// <param name="blocktype">What type the side/block is</param>
     public Quad(Vector3 offset, MeshUtils.EBlockSide blockside, MeshUtils.EBlockType blocktype)
     {
         mesh = new Mesh();

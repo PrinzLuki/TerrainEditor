@@ -1,7 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Please do not rate this
+/// </summary>
 public class CamController : MonoBehaviour
 {
     [Header("Mouse Settings")]

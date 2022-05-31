@@ -25,9 +25,9 @@ public struct PerlinSettings
 
 public class World : MonoBehaviour
 {
-    public static Vector3Int worldDimensions = new Vector3Int(5, 7, 5);
+    public static Vector3Int worldDimensions = new Vector3Int(30, 2, 30);
     public static Vector3Int chunkDimensions = new Vector3Int(10, 10, 10);
-    public static int radius = 5;
+    public static int radius = 2;
     public GameObject chunkPrefab;
 
     [SerializeField] GameObject loadingCam;
@@ -55,10 +55,14 @@ public class World : MonoBehaviour
     Dictionary<Vector3Int, Chunk> chunks = new Dictionary<Vector3Int, Chunk>();
 
     Vector3Int lastBuildPos;
-    int drawRadius = 5;
+    int drawRadius = 3;
 
     Queue<IEnumerator> buildQueue = new Queue<IEnumerator>();
 
+    /// <summary>
+    /// Dequeues what chunks already enabled
+    /// </summary>
+    /// <returns></returns>
     IEnumerator BuildCoordinator()
     {
         while (true)
@@ -110,7 +114,10 @@ public class World : MonoBehaviour
         }
         chunkCollumns.Add(new Vector2Int(x, z));
     }
-
+    /// <summary>
+    /// Build world in the begin
+    /// </summary>
+    /// <returns></returns>
     IEnumerator BuildWorld()
     {
         for (int z = 0; z <= worldDimensions.z; z++)
@@ -139,6 +146,11 @@ public class World : MonoBehaviour
     }
 
     WaitForSeconds waitForSeconds = new WaitForSeconds(0.5f);
+
+    /// <summary>
+    /// Calculating the new position of the player and saving the last position
+    /// </summary>
+    /// <returns></returns>
     IEnumerator UpdateWorld()
     {
         while (true)
@@ -156,6 +168,11 @@ public class World : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// Disabling meshrenderers of the chunks 
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="z"></param>
     public void HideChunkColumn(int x, int z)
     {
         for (int y = 0; y < worldDimensions.y; y++)
@@ -167,7 +184,12 @@ public class World : MonoBehaviour
             }
         }
     }
-
+    /// <summary>
+    /// Looping/Checking what chunks should hide
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="z"></param>
+    /// <returns></returns>
     IEnumerator HideColumns(int x, int z)
     {
         Vector2Int playerPos = new Vector2Int(x, z);
@@ -180,7 +202,13 @@ public class World : MonoBehaviour
         }
         yield return null;
     }
-
+    /// <summary>
+    /// Adding Himself in the queue
+    /// </summary>
+    /// <param name="x">XPosition</param>
+    /// <param name="z">ZPosition</param>
+    /// <param name="radius">How far gets redered the world</param>
+    /// <returns></returns>
     IEnumerator BuildRecursiveWorld(int x, int z, int radius)
     {
         int nextRad = radius - 1;
@@ -203,7 +231,11 @@ public class World : MonoBehaviour
         yield return null;
     }
 
-
+    /// <summary>
+    /// Returns the Position of the chunk as string
+    /// </summary>
+    /// <param name="v"></param>
+    /// <returns></returns>
     public static string BuildChunkName(Vector3Int v)
     {
         return $"{(int)v.x}_{(int)v.y}_{(int)v.z}";
